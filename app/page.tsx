@@ -69,7 +69,7 @@ export default function Home() {
                 />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">
+                <h1 className=" text-sm sm:text-xl font-bold text-white">
                   World Samma Federation
                 </h1>
                 <p className="text-sm text-purple-200">Live Training Portal</p>
