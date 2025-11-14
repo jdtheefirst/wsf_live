@@ -4,16 +4,20 @@ import jwt from "jsonwebtoken";
 import {
   AccessToken,
   CreateIngressOptions,
+  IngressAudioEncodingOptions,
   IngressAudioEncodingPreset,
+  IngressAudioOptions,
   IngressClient,
   IngressInfo,
   IngressInput,
+  IngressVideoEncodingOptions,
   IngressVideoEncodingPreset,
+  IngressVideoOptions,
   ParticipantInfo,
   ParticipantPermission,
   RoomServiceClient,
 } from "livekit-server-sdk";
-import { TrackSource } from "livekit-server-sdk/dist/proto/livekit_models";
+import { TrackSource } from "livekit-server-sdk";
 
 export type RoomMetadata = {
   creator_identity: string;
@@ -122,8 +126,6 @@ export class Controller {
     room_name,
     ingress_type = "rtmp",
   }: CreateIngressParams): Promise<CreateIngressResponse> {
-    // Fetch all existing ingress sessions
-
     const existingIngresses = await this.ingressService.listIngress();
 
     await Promise.all(
@@ -139,8 +141,6 @@ export class Controller {
       room_name = generateRoomId();
     }
 
-    // Create room and ingress
-
     await this.roomService.createRoom({
       name: room_name,
       metadata: JSON.stringify(metadata),
@@ -154,17 +154,25 @@ export class Controller {
     };
 
     if (ingress_type === "whip") {
-      // https://docs.livekit.io/egress-ingress/ingress/overview/#bypass-transcoding-for-whip-sessions
-      options.bypassTranscoding = true;
+      // For WHIP input, you might want to bypass transcoding for lower latency
+      options.enableTranscoding = false;
     } else {
+      // For RTMP input, configure video and audio encoding
       options.video = {
         source: TrackSource.CAMERA,
-        preset: IngressVideoEncodingPreset.H264_1080P_30FPS_3_LAYERS,
-      };
+        encodingOptions: {
+          case: "preset" as const,
+          value: IngressVideoEncodingPreset.H264_1080P_30FPS_3_LAYERS,
+        },
+      } as IngressVideoOptions;
+
       options.audio = {
         source: TrackSource.MICROPHONE,
-        preset: IngressAudioEncodingPreset.OPUS_STEREO_96KBPS,
-      };
+        encodingOptions: {
+          case: "preset" as const,
+          value: IngressAudioEncodingPreset.OPUS_STEREO_96KBPS,
+        },
+      } as IngressAudioOptions;
     }
 
     const ingress = await this.ingressService.createIngress(
@@ -173,8 +181,6 @@ export class Controller {
         : IngressInput.RTMP_INPUT,
       options
     );
-
-    // Create viewer access token
 
     const at = new AccessToken(
       process.env.LIVEKIT_API_KEY!,
@@ -202,7 +208,7 @@ export class Controller {
       auth_token: authToken,
       connection_details: {
         ws_url: process.env.LIVEKIT_WS_URL!,
-        token: at.toJwt(),
+        token: await at.toJwt(),
       },
     };
   }
@@ -237,7 +243,7 @@ export class Controller {
 
     const connection_details = {
       ws_url: process.env.LIVEKIT_WS_URL!,
-      token: at.toJwt(),
+      token: await at.toJwt(),
     };
 
     const authToken = this.createAuthToken(roomName, metadata.creator_identity);
@@ -303,7 +309,7 @@ export class Controller {
       auth_token: authToken,
       connection_details: {
         ws_url: process.env.LIVEKIT_WS_URL!,
-        token: at.toJwt(),
+        token: await at.toJwt(),
       },
     };
   }
