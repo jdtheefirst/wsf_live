@@ -4,7 +4,6 @@ import { Toaster } from "sonner";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";
-import { SuggestionDialog } from "@/components/suggestion-dialog";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -56,7 +55,6 @@ export default function RootLayout({
         <AuthProvider>
           {children}
           <Toaster />
-          <SuggestionDialog />
         </AuthProvider>
       </body>
     </html>

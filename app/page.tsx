@@ -13,6 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Shield, Users, Video, Award, Globe, Clock } from "lucide-react";
 import Image from "next/image";
+import { SuggestionDialog } from "@/components/suggestion-dialog";
 
 export default function Home() {
   const year = new Date().getFullYear();
@@ -53,7 +54,8 @@ export default function Home() {
   ];
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative">
+      <SuggestionDialog />
       {/* Header */}
       <header className="border-b border-white/10">
         <div className="container mx-auto px-4 py-4">

@@ -3,15 +3,15 @@ import { redirect } from "next/navigation";
 import HostPageImpl from "./page.client";
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise<{
     at: string | undefined;
     rt: string | undefined;
-  };
+  }>;
 }
 
-export default async function HostPage({
-  searchParams: { at, rt },
-}: PageProps) {
+export default async function HostPage({ searchParams }: PageProps) {
+  const { at, rt } = await searchParams;
+
   if (!at || !rt) {
     redirect("/");
   }
